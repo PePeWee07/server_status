@@ -189,6 +189,23 @@ body {
       </div>
     </div>
 
+    <!-- IA API Rest -->
+    <div class="server-entry">
+      <h2>Webhook</h2>
+      <div class="status-row">
+        <div class="status-info">
+          <ul>
+            <li>
+              <i id="statusIcon3" class="fa fa-circle yellow"></i>
+              <span id="statusText3" class="status-text yellow">Verificando...</span>
+            </li>
+          </ul>
+          <p class="last-seen" id="details3">-4m (00-00-0000)</p>
+        </div>
+        <div class="report-history" id="history3"></div>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -198,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const services = [
     {
       name: "WhatsApp Api Rest",
-      endpoint: "http://localhost:8082/api/health",
+      endpoint: "https://ia-sp-backoffice.ucatolica.cue.ec/api/health",
       icon: document.getElementById("statusIcon1"),
       text: document.getElementById("statusText1"),
       details: document.getElementById("details1"),
@@ -206,12 +223,20 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     {
       name: "IA Api Rest",
-      endpoint: "http://localhost:5000/health",
+      endpoint: "https://ia-sp-backoffice.ucatolica.cue.ec/ia/health",
       icon: document.getElementById("statusIcon2"),
       text: document.getElementById("statusText2"),
       details: document.getElementById("details2"),
       history: document.getElementById("history2"),
     },
+    {
+      name: "IA Api Rest",
+      endpoint: "http://localhost:8081/health",
+      icon: document.getElementById("statusIcon3"),
+      text: document.getElementById("statusText3"),
+      details: document.getElementById("details3"),
+      history: document.getElementById("history3"),
+    }
   ];
 
   // Función que hace todo el flujo: check + history
