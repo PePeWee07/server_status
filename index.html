@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Status</title>
+</head>
+<style>
+  /* ============================= */
+/* Variables de tema             */
+/* ============================= */
+:root {
+  --bg: #121212;
+  --fg: #e0e0e0;
+  --accent: #86ecfc;
+  --card-bg: #1e1e1e;
+  --border: #2c2c2c;
+  --green: #4caf50;
+  --red:   #f44336;
+  --yellow: #ffeb3b;
+  --gray:  #706d6d;
+  --shadow: rgba(0,0,0,0.5);
+}
+
+/* ============================= */
+/* Reset y básicos               */
+/* ============================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--bg);
+  color: var(--fg);
+  line-height: 1.4;
+  padding: 2rem;
+}
+
+/* ============================= */
+/* Grid de servidores            */
+/* ============================= */
+.server-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* ============================= */
+/* Tarjeta de servidor           */
+/* ============================= */
+.server-entry {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px var(--shadow);
+  overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+}
+.server-entry:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px var(--shadow);
+}
+.server-entry h2 {
+  background: var(--accent);
+  padding: .75rem 1rem;
+  font-size: 1.25rem;
+  color: var(--bg);
+}
+
+/* ============================= */
+/* Fila de estado                */
+/* ============================= */
+.status-row {
+  display: flex;
+  padding: 1rem;
+}
+.status-info {
+  flex: 1;
+}
+.status-info ul {
+  list-style: none;
+}
+.status-info li {
+  margin-bottom: .5rem;
+  font-size: .9rem;
+}
+.status-info i.fa {
+  width: 1rem;
+  text-align: center;
+  margin-right: .5rem;
+  color: var(--accent);
+}
+.last-seen {
+  font-size: .8rem;
+  color: var(--gray);
+  margin-top: .5rem;
+}
+
+/* ============================= */
+/* Indicadores de historia       */
+/* ============================= */
+.report-history {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 1rem;
+  background: var(--card-bg);
+  border-top: 1px solid var(--border);
+}
+.timeslice {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+}
+.timeslice .entry {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background-color: var(--gray);
+  transition: background-color .3s;
+}
+/* clases dinámicas para colorear cada bloque */
+.entry.up   { background-color: #aba9a9; }
+.entry.down { background-color: var(--red); }
+.entry.warn { background-color: var(--yellow); }
+
+/* ============================= */
+/* Responsivo y detalles extras  */
+/* ============================= */
+@media (max-width: 600px) {
+  .status-row {
+    flex-direction: column;
+  }
+  .report-history {
+    justify-content: center;
+  }
+}
+
+/* Colores para el texto de estado */
+.status-text.green {
+  color: var(--green);
+}
+.status-text.red {
+  color: var(--red);
+}
+.status-text.yellow {
+  color: var(--yellow);
+}
+</style>
+<body>
+  
+  <div class="server-list">
+
+    <!-- WhatsApp API Rest -->
+    <div class="server-entry">
+      <h2>WhatsApp Api Rest</h2>
+      <div class="status-row">
+        <div class="status-info">
+          <ul>
+            <li>
+              <i id="statusIcon1" class="fa fa-circle yellow"></i>
+              <span id="statusText1" class="status-text yellow">Verificando...</span>
+            </li>
+          </ul>
+          <p class="last-seen" id="details1">-0m (00-00-0000)</p>
+        </div>
+        <div class="report-history" id="history1"></div>
+      </div>
+    </div>
+
+    <!-- IA API Rest -->
+    <div class="server-entry">
+      <h2>IA Api Rest</h2>
+      <div class="status-row">
+        <div class="status-info">
+          <ul>
+            <li>
+              <i id="statusIcon2" class="fa fa-circle yellow"></i>
+              <span id="statusText2" class="status-text yellow">Verificando...</span>
+            </li>
+          </ul>
+          <p class="last-seen" id="details2">-4m (00-00-0000)</p>
+        </div>
+        <div class="report-history" id="history2"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // script.js
+
+document.addEventListener("DOMContentLoaded", () => {
+  const services = [
+    {
+      name: "WhatsApp Api Rest",
+      endpoint: "http://localhost:8082/api/health",
+      icon: document.getElementById("statusIcon1"),
+      text: document.getElementById("statusText1"),
+      details: document.getElementById("details1"),
+      history: document.getElementById("history1"),
+    },
+    {
+      name: "IA Api Rest",
+      endpoint: "http://localhost:5000/health",
+      icon: document.getElementById("statusIcon2"),
+      text: document.getElementById("statusText2"),
+      details: document.getElementById("details2"),
+      history: document.getElementById("history2"),
+    },
+  ];
+
+  // Función que hace todo el flujo: check + history
+  async function updateAll() {
+    // 1) Poner todos en "Verificando..."
+    services.forEach((svc) => {
+      svc.icon.className = "fa fa-circle yellow";
+      svc.text.className = "status-text yellow";
+      svc.text.innerText = "Verificando...";
+      svc.details.innerText = "";
+      svc.history.innerHTML = ""; // limpiamos historia
+    });
+
+    // 2) Ejecutar todas las comprobaciones en paralelo
+    await Promise.all(services.map((svc) => checkService(svc)));
+  }
+
+  function historyx() {
+    // 3) Generar historia solo si está en línea
+    services.forEach((svc) => {
+      if (svc.icon.classList.contains("green")) {
+        // Online: 1–8 bloques por columna
+        generateHistory(svc.history, {
+          timeslices: 24,
+          minEntries: 1,
+          maxEntries: 8,
+        });
+      } else {
+        // No online: limpiar historia
+        svc.history.innerHTML = "";
+      }
+    });
+  }
+
+  // Arranca inmediatamente y luego cada 1 segundo
+  updateAll();
+  setInterval(historyx, 1000);
+});
+
+/**
+ * Consulta el endpoint y actualiza icono, texto y detalles.
+ */
+async function checkService(service) {
+  try {
+    const res = await fetch(service.endpoint, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status && data.status.toLowerCase() === "ok") {
+        service.icon.className = "fa fa-circle green";
+        service.text.className = "status-text green";
+        service.text.innerText = "En línea";
+      } else {
+        service.icon.className = "fa fa-circle red";
+        service.text.className = "status-text red";
+        service.text.innerText = "Error en API";
+      }
+      service.details.innerText = `\n ${data.message} \n \n ${data.timestamp}`;
+    } else {
+      service.icon.className = "fa fa-circle red";
+      service.text.className = "status-text red";
+      service.text.innerText = `Error ${res.status}`;
+      service.details.innerText = "";
+    }
+  } catch (err) {
+    service.icon.className = "fa fa-circle red";
+    service.text.className = "status-text red";
+    service.text.innerText = "Fuera de línea";
+    service.details.innerText = err.message;
+  }
+}
+
+/**
+ * Rellena un contenedor con columnas .timeslice y bloques .entry.
+ */
+function generateHistory(container, { timeslices, minEntries, maxEntries }) {
+  container.innerHTML = "";
+  for (let i = 0; i < timeslices; i++) {
+    const ts = document.createElement("div");
+    ts.classList.add("timeslice");
+    const count = getRandomInt(minEntries, maxEntries);
+    for (let j = 0; j < count; j++) {
+      const entry = document.createElement("div");
+      entry.classList.add("entry", randomChoice(["up" /*,'down','warn'*/]));
+      ts.appendChild(entry);
+    }
+    container.appendChild(ts);
+  }
+}
+
+/** Entero aleatorio entre min y max (incluidos) */
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/** Elige un elemento al azar de un array */
+function randomChoice(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+  </script>
+</body>
+</html>
