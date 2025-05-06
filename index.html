@@ -193,9 +193,9 @@ h2 a{
       </div>
     </div>
 
-    <!-- IA API Rest -->
+    <!-- Webhook -->
     <div class="server-entry">
-      <h2><a href="https://ia-sp-webhook.ucatolica.cue.ec//health">Webhook</a></h2>
+      <h2><a href="https://ia-sp-webhook.ucatolica.cue.ec/webhook/health">Webhook</a></h2>
       <div class="status-row">
         <div class="status-info">
           <ul>
@@ -212,9 +212,7 @@ h2 a{
 
   </div>
 
-  <script>
-    // script.js
-
+<script>
 document.addEventListener("DOMContentLoaded", () => {
   const services = [
     {
@@ -234,8 +232,8 @@ document.addEventListener("DOMContentLoaded", () => {
       history: document.getElementById("history2"),
     },
     {
-      name: "IA Api Rest",
-      endpoint: "https://ia-sp-webhook.ucatolica.cue.ec/health",
+      name: "Webhook",
+      endpoint: "https://ia-sp-webhook.ucatolica.cue.ec/webhook/health",
       icon: document.getElementById("statusIcon3"),
       text: document.getElementById("statusText3"),
       details: document.getElementById("details3"),
@@ -266,7 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
         generateHistory(svc.history, {
           timeslices: 24,
           minEntries: 1,
-          maxEntries: 8,
+          maxEntries: 10,
         });
       } else {
         // No online: limpiar historia
